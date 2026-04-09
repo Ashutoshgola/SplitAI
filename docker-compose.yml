@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  app:
+    image: split-ai
+    container_name: splitai
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_b24tZ2FubmV0LTQ3LmNsZXJrLmFjY291bnRzLmRldiQ
+      - NEXT_PUBLIC_CONVEX_URL=https://terrific-owl-104.convex.cloud
+      - CLERK_SECRET_KEY=sk_test_NJMEi0qEBCzaf74niRrR0gJNXznzhhlAYPdKG6T39b
+    restart: unless-stopped
