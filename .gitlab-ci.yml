@@ -1,0 +1,53 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  IMAGE_NAME: split-ai
+
+build:
+  stage: build
+  image: docker:24
+  services:
+    - docker:24-dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  script:
+    - docker build
+        --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+        --build-arg NEXT_PUBLIC_CONVEX_URL=$NEXT_PUBLIC_CONVEX_URL
+        -t $IMAGE_NAME .
+    - docker save $IMAGE_NAME | gzip > split-ai.tar.gz
+  artifacts:
+    paths:
+      - split-ai.tar.gz
+    expire_in: 1 hour
+  only:
+    - main
+
+deploy:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client
+    - eval $(ssh-agent -s)
+    - echo "$EC2_SSH_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - ssh-keyscan $EC2_HOST >> ~/.ssh/known_hosts
+  script:
+    - scp split-ai.tar.gz $EC2_USER@$EC2_HOST:~/
+    - ssh $EC2_USER@$EC2_HOST "
+        cd ~/projects/SplitAI/SplitAI &&
+        docker load < ~/split-ai.tar.gz &&
+        docker stop splitai || true &&
+        docker rm splitai || true &&
+        docker run -d
+          --name splitai
+          -p 3000:3000
+          --env-file .env
+          split-ai
+      "
+  only:
+    - main
+  needs:
+    - build
