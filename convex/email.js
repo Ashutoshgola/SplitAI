@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { v } from "convex/valuesiz";
 import { action } from "./_generated/server";
 import { Resend } from "resend";
 
@@ -12,7 +12,14 @@ export const sendEmail = action({
     apiKey: v.string(),
   },
   handler: async (ctx, args) => {
-    const resend = new Resend(args.apiKey);
+    const key = args.apiKey || process.env.RESEND_API_KEY;
+
+if (!key) {
+  console.log("Skipping email (no API key during build)");
+  return { success: true, skipped: true };
+}
+
+const resend = new Resend(key);
 
     try {
       const result = await resend.emails.send({
