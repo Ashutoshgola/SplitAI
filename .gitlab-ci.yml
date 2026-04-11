@@ -13,7 +13,7 @@ build:
   variables:
     DOCKER_TLS_CERTDIR: "/certs"
   script:
-    - docker build --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY --build-arg NEXT_PUBLIC_CONVEX_URL=$NEXT_PUBLIC_CONVEX_URL -t $IMAGE_NAME .
+    - docker build --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY --build-arg           NEXT_PUBLIC_CONVEX_URL=$NEXT_PUBLIC_CONVEX_URL --build-arg INNGEST_EVENT_KEY=$INNGEST_EVENT_KEY --build-arg INNGEST_SIGNING_KEY=$INNGEST_SIGNING_KEY -t $IMAGE_NAME .
     - docker save $IMAGE_NAME | gzip > split-ai.tar.gz
   artifacts:
     paths:
